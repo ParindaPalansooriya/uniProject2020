@@ -216,10 +216,12 @@ public class Main2Activity extends AppCompatActivity {
                         actionType="close";
                     }else {
                         JSONObject json = new JSONObject();
-                        json.put("name", matches.get(0));
+                        /*json.put("user", matches.get(0));
                         json.put("password", matches.get(0));
-                        json.put("email", matches.get(0));
-                        POSTRequest("/user/uni", json);
+                        json.put("email", matches.get(0));*/
+                        json.put("sender", "user1");
+                        json.put("message", matches.get(0));
+                        POSTRequest("/webhooks/rest/webhook", json);
                     }
                 }
             }
@@ -280,8 +282,10 @@ public class Main2Activity extends AppCompatActivity {
 
                             if (response.toString().isEmpty() || response.toString() == null) {
                                 JSONObject returnPOST = new JSONObject();
-                                returnPOST.put("name", "Http OK but Empty");
-                                returnPOST.put("description", responseCode);
+                                /*returnPOST.put("name", "Http OK but Empty");
+                                returnPOST.put("description", responseCode);*/
+                                returnPOST.put("recipient_id", "Http OK but Empty");
+                                returnPOST.put("text", responseCode);
                                 returnPOSTreturn = returnPOST;
                             } else {
                                 JSONParser parser = new JSONParser();
@@ -293,13 +297,18 @@ public class Main2Activity extends AppCompatActivity {
                                 } else {
                                     JSONArray tempOb = (JSONArray) parser.parse(response.toString());
                                     returnPOST = (JSONObject) tempOb.get(0);
+                                    for(int i=0; i<tempOb.size(); i++){
+                                        Toast.makeText(Main2Activity.this, "Enable Microphone Permission..!!", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
                                 returnPOSTreturn = returnPOST;
                             }
                         } else {
                             JSONObject returnPOST = new JSONObject();
-                            returnPOST.put("name", "Http ERROR"+responseCode);
-                            returnPOST.put("description", responseCode);
+                            returnPOST.put("recipient_id", "Http ERROR"+responseCode);
+                            returnPOST.put("text", responseCode);
+                            /*returnPOST.put("name", "Http ERROR"+responseCode);
+                            returnPOST.put("description", responseCode);*/
                             returnPOSTreturn = returnPOST;
                         }
                         System.out.print("test API metho: "+returnPOSTreturn);
@@ -424,10 +433,13 @@ public class Main2Activity extends AppCompatActivity {
                 text2.setText(text.getText().toString());
                 addItems(text.getText().toString(),false,"text");
                 JSONObject json = new JSONObject();
-                json.put("name",text.getText().toString());
+                /*json.put("name",text.getText().toString());
                 json.put("password",text.getText().toString());
                 json.put("email",text.getText().toString());
-                POSTRequest("/user/uni", json);
+                POSTRequest("/user/uni", json);*/
+                json.put("sender", "user1");
+                json.put("message", text.getText().toString());
+                POSTRequest("/webhooks/rest/webhook", json);
                 alert.cancel();
             }
         });
