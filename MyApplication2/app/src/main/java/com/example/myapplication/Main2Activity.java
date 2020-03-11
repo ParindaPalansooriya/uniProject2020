@@ -70,7 +70,7 @@ public class Main2Activity extends AppCompatActivity {
     Intent speechRecognizerIntent;
     TextToSpeech speecher;
 
-    static String mainDomain = "http://192.168.8.100:8080";/** http://device IP:host port number/API endpoint **/
+    static String mainDomain = "http://192.168.1.13:5005";/** http://device IP:host port number/API endpoint **/
     Thread thread;
     JSONObject returnPOSTreturn;
 
