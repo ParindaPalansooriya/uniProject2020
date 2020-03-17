@@ -37,13 +37,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -70,9 +68,10 @@ public class Main2Activity extends AppCompatActivity {
     Intent speechRecognizerIntent;
     TextToSpeech speecher;
 
-    static String mainDomain = "http://192.168.8.100:8080";/** http://device IP:host port number/API endpoint **/
+    static String mainDomain = "http://192.168.1.14:5005";/** http://device IP:host port number/API endpoint **/
     Thread thread;
     JSONObject returnPOSTreturn;
+    JSONArray tempOb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,10 +215,16 @@ public class Main2Activity extends AppCompatActivity {
                         actionType="close";
                     }else {
                         JSONObject json = new JSONObject();
-                        json.put("name", matches.get(0));
+                        /*json.put("name", matches.get(0));
                         json.put("password", matches.get(0));
-                        json.put("email", matches.get(0));
-                        POSTRequest("/user/uni", json);
+                        json.put("email", matches.get(0));*/
+                        try {
+                            json.put("sender", "user1");
+                            json.put("message", matches.get(0));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        POSTRequest("/webhooks/rest/webhook", json);
                     }
                 }
             }
@@ -256,6 +261,7 @@ public class Main2Activity extends AppCompatActivity {
             @Override
             public void run() {
                 try  {
+                    tempOb=null;
                     final String POST_PARAMS = json.toString();
                     System.out.println(json);
                     URL obj = new URL(mainDomain+apiURL);
@@ -280,8 +286,8 @@ public class Main2Activity extends AppCompatActivity {
 
                             if (response.toString().isEmpty() || response.toString() == null) {
                                 JSONObject returnPOST = new JSONObject();
-                                returnPOST.put("name", "Http OK but Empty");
-                                returnPOST.put("description", responseCode);
+                                returnPOST.put("sender", "Http OK but Empty");
+                                returnPOST.put("message", responseCode);
                                 returnPOSTreturn = returnPOST;
                             } else {
                                 JSONParser parser = new JSONParser();
@@ -291,33 +297,75 @@ public class Main2Activity extends AppCompatActivity {
                                 if (temp.charAt(0) != '[') {
                                     returnPOST = (JSONObject) parser.parse(response.toString());
                                 } else {
-                                    JSONArray tempOb = (JSONArray) parser.parse(response.toString());
+                                    tempOb = (JSONArray) parser.parse(response.toString());
                                     returnPOST = (JSONObject) tempOb.get(0);
                                 }
                                 returnPOSTreturn = returnPOST;
                             }
                         } else {
                             JSONObject returnPOST = new JSONObject();
-                            returnPOST.put("name", "Http ERROR"+responseCode);
-                            returnPOST.put("description", responseCode);
+                            returnPOST.put("sender", "Http ERROR"+responseCode);
+                            returnPOST.put("message", responseCode);
                             returnPOSTreturn = returnPOST;
                         }
                         System.out.print("test API metho: "+returnPOSTreturn);
                     }
                 } catch (Exception e) {
                     JSONObject returnPOST = new JSONObject();
-                    returnPOST.put("name", "Exeption"+e.getMessage());
-                    returnPOST.put("description", e);
+                    try {
+                        returnPOST.put("sender", "Exeption"+e.getMessage());
+                        returnPOST.put("message", e);
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                    }
                     returnPOSTreturn = returnPOST;
                 }finally {
-                    actionType = (String)returnPOSTreturn.get("name");
-                    addItems((String)returnPOSTreturn.get("name") ,true,actionType);
-                    if (actionType.equals("link")) {
-                        Speecher("I am received a web link. Do you want to load it in web browser");
-                    }else if (actionType.equals("reminder")){
-                        Speecher("I am received a massage to set a remainder for you. Do you accept it");
-                    }else{
-                        Speecher((String)returnPOSTreturn.get("name"));
+                    if (tempOb!=null){
+                       // for (Object temp : tempOb){
+                            for (int i=0; i<tempOb.length(); i++) {
+                                JSONObject readingObject = null;
+                                try {
+                                    readingObject = (JSONObject) tempOb.get(i);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                try {
+                                    actionType = (String) readingObject.get("text");
+                                    addItems((String) readingObject.get("text"), true, actionType);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                if (actionType.equals("link")) {
+                                    Speecher("I am received a web link. Do you want to load it in web browser");
+                                } else if (actionType.equals("reminder")) {
+                                    Speecher("I am received a massage to set a remainder for you. Do you accept it");
+                                } else {
+                                    try {
+                                        Speecher((String) readingObject.get("text"));
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                     //   }
+                    }else {
+                        try {
+                            actionType = (String) returnPOSTreturn.get("text");
+                            addItems((String) returnPOSTreturn.get("text"), true, actionType);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        if (actionType.equals("link")) {
+                            Speecher("I am received a web link. Do you want to load it in web browser");
+                        } else if (actionType.equals("reminder")) {
+                            Speecher("I am received a massage to set a remainder for you. Do you accept it");
+                        } else {
+                            try {
+                                Speecher((String) returnPOSTreturn.get("text"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
             }
@@ -424,10 +472,16 @@ public class Main2Activity extends AppCompatActivity {
                 text2.setText(text.getText().toString());
                 addItems(text.getText().toString(),false,"text");
                 JSONObject json = new JSONObject();
-                json.put("name",text.getText().toString());
+                /*json.put("name",text.getText().toString());
                 json.put("password",text.getText().toString());
-                json.put("email",text.getText().toString());
-                POSTRequest("/user/uni", json);
+                json.put("email",text.getText().toString());*/
+                try {
+                    json.put("sender",text.getText().toString());
+                    json.put("message",text.getText().toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                POSTRequest("/webhooks/rest/webhook", json);
                 alert.cancel();
             }
         });

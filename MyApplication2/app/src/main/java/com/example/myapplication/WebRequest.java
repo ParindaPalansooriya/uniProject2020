@@ -49,7 +49,7 @@ public class WebRequest extends AsyncTask<String, Void, JSONObject> {
                 if (response.toString().isEmpty() || response.toString() == null) {
                     JSONObject returnPOST = new JSONObject();
                     returnPOST.put("name", "Http OK");
-                    returnPOST.put("description", responseCode);
+                    returnPOST.put("message", responseCode);
                     return returnPOST;
                 } else {
                     JSONParser parser = new JSONParser();
@@ -67,7 +67,7 @@ public class WebRequest extends AsyncTask<String, Void, JSONObject> {
             } else {
                 JSONObject returnPOST = new JSONObject();
                 returnPOST.put("name", "Http ERROR");
-                returnPOST.put("description", responseCode);
+                returnPOST.put("message", responseCode);
                 return returnPOST;
             }
 

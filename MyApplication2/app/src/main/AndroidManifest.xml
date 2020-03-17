@@ -23,19 +23,20 @@
         <activity
             android:name=".Splash"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/FullscreenTheme">
-	<intent-filter>
+            android:theme="@style/FullscreenTheme"></activity>
+        <activity android:name=".MainActivity">
+        </activity>
+        <activity android:name=".Main2Activity">
+        <intent-filter>
             <action android:name="android.intent.action.MAIN" />
 
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
-	</activity>
-        <activity android:name=".MainActivity">
         </activity>
-        <activity android:name=".Main2Activity">
-        
-        </activity>
-        
+        <activity
+            android:name=".temp.FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen" />
     </application>
 
 </manifest>
